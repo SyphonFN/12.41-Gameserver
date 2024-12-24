@@ -131,9 +131,9 @@ inline void ShowFoundation(ABuildingFoundation* BuildingFoundation) {
 		return;
 
 	BuildingFoundation->bServerStreamedInLevel = true;
+	BuildingFoundation->DynamicFoundationType = EDynamicFoundationType::Static;
 	BuildingFoundation->OnRep_ServerStreamedInLevel();
 
-	BuildingFoundation->DynamicFoundationType = EDynamicFoundationType::Static;
 	BuildingFoundation->FoundationEnabledState = EDynamicFoundationEnabledState::Enabled;
 	BuildingFoundation->DynamicFoundationRepData.EnabledState = EDynamicFoundationEnabledState::Enabled;
 	BuildingFoundation->DynamicFoundationTransform = BuildingFoundation->GetTransform();
