@@ -1,0 +1,90 @@
+# Ignore Visual Studio temporary files, build results, and
+# folders.
+
+/vcpkg/installed/
+/vcpkg/buildtrees/
+/vcpkg/downloads/
+/vcpkg/packages/
+
+.vscode/
+.vs/
+*.VC.db
+*.VC.VC.opendb
+
+# Ignore Visual Studio Code workspace settings file
+.vscode/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folders for build output
+[Oo]ut/
+[Bb]in/
+Debug/
+Release/
+x64/
+x86/
+ARM/
+ARM64/
+*.obj
+*.exe
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.dll
+*.log
+*.ipch
+*.aps
+*.ncb
+*.sdf
+*.opendb
+*.tlog
+*.lastbuildstate
+*.pki
+*.log
+
+# Visual Studio solution and project file backups
+*.user
+*.suo
+*.userosscache
+*.userprefs
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CMakeScripts/
+Testing/
+Makefile
+CMakeLists.txt.user
+
+# Ignore build directories
+build/
+build-x64/
+build-x86/
+
+# Ignore generated files
+*.generated.*
+*.gen.cpp
+*.gen.h
+
+# Ignore package directories
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Ignore IDE settings files
+.idea/
+*.VC.db
+
+# Ignore Unreal Engine files (if applicable)
+DerivedDataCache/
+Intermediate/
+Saved/
+Binaries/
