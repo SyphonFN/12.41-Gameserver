@@ -18,37 +18,7 @@
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Braintrot\SDK\PropertyFixup.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\SDK\SDK.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\SDK\UnrealContainers.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\NetDriver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MinHook\MinHook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\Utilities.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\GameMode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\Pawn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\FortInventory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\GameplayAbilities.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Braintrot\Public\BuildingContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Brainrot\Public\BuildingContainer.h">
@@ -84,45 +54,12 @@
     <ClInclude Include="Brainrot\SDK\UnrealContainers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Brainrot\Public\PlayerState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\SDK\SDK\Engine_functions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\SDK\SDK\Basic.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\SDK\SDK\CoreUObject_functions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\SDK\SDK\GameplayAbilities_functions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\GameMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\NetDriver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\PlayerController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\Pawn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Public\PlayerController.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\FortInventory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\GameplayAbilities.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Braintrot\Private\BuildingContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Brainrot\Private\BuildingContainer.cpp">
@@ -162,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Brainrot\SDK\SDK\AIModule_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Brainrot\Private\PlayerState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

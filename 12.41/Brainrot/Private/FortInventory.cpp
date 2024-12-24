@@ -76,33 +76,60 @@ FFortItemEntry* FortInventory::FindItemEntry(AFortPlayerController* PlayerContro
 	return nullptr;
 }
 
-void FortInventory::RemoveItem(AFortPlayerController* PlayerController, UFortItemDefinition* ItemDefinition, int Count) {
-	if (!PlayerController || !PlayerController->WorldInventory || !ItemDefinition) { return; }
+void FortInventory::RemoveItem(AFortPlayerController* PlayerController, FGuid Guid, int Count) {
+	if (!PlayerController || !PlayerController->WorldInventory) return;
 
-	auto& InventoryEntries = PlayerController->WorldInventory->Inventory.ReplicatedEntries;
+	auto& Inventory = PlayerController->WorldInventory->Inventory;
+	auto& ReplicatedEntries = Inventory.ReplicatedEntries;
 
-	for (int i = 0; i < InventoryEntries.Num(); i++) {
-		if (InventoryEntries[i].ItemDefinition == ItemDefinition) {
-			if (InventoryEntries[i].Count >= Count) {
-				InventoryEntries[i].Count -= Count;
+	bool ItemRemoved = false;
 
-				if (InventoryEntries[i].Count <= 0) {
-					InventoryEntries.Remove(i);
-				}
+	for (int32 i = 0; i < ReplicatedEntries.Num(); ++i) {
+		auto& Entry = ReplicatedEntries[i];
 
-				for (int i = 0; i < PlayerController->WorldInventory->Inventory.ReplicatedEntries.Num(); i++) {
-					PlayerController->WorldInventory->Inventory.ReplicatedEntries[i].LoadedAmmo = InventoryEntries[i].LoadedAmmo;
-					PlayerController->WorldInventory->Inventory.ReplicatedEntries[i].Count = InventoryEntries[i].Count;
-					break;
-				}
+		if (Entry.ItemGuid == Guid) {
+			Entry.Count = (Entry.Count > Count) ? (Entry.Count - Count) : 0;
 
-				PlayerController->WorldInventory->Inventory.MarkItemDirty(InventoryEntries[i]);
-				PlayerController->WorldInventory->HandleInventoryLocalUpdate();
+			Inventory.MarkItemDirty(Entry);
+			PlayerController->WorldInventory->HandleInventoryLocalUpdate();
+
+			if (Entry.Count == 0) {
+				ReplicatedEntries.Remove(i);
+				ItemRemoved = true;
 			}
 			else {
-				std::cout << "Not enough items to remove." << std::endl;
+				for (auto& OtherEntry : ReplicatedEntries) {
+					OtherEntry.LoadedAmmo = Entry.LoadedAmmo;
+				}
 			}
-			return; 
+			break;
+		}
+	}
+
+	if (ItemRemoved) {
+		for (int32 i = 0; i < Inventory.ItemInstances.Num(); ++i) {
+			if (Inventory.ItemInstances[i]->GetItemGuid() == Guid) {
+				Inventory.ItemInstances.Remove(i);
+				break;
+			}
+		}
+
+		Inventory.MarkArrayDirty();
+	}
+
+	PlayerController->WorldInventory->bRequiresLocalUpdate = true;
+	PlayerController->WorldInventory->HandleInventoryLocalUpdate();
+}
+
+void FortInventory::RemoveAllDroppableItems(AFortPlayerControllerAthena* PlayerController) {
+	if (!PlayerController)
+		return;
+
+	for (size_t i = 0; i < PlayerController->WorldInventory->Inventory.ItemInstances.Num(); i++) {
+		if (PlayerController->WorldInventory->Inventory.ItemInstances[i]->CanBeDropped()) {
+			PlayerController->WorldInventory->Inventory.ItemInstances.Remove(i);
+			PlayerController->WorldInventory->Inventory.ReplicatedEntries.Remove(i);
+			PlayerController->WorldInventory->Inventory.MarkArrayDirty();
 		}
 	}
 }

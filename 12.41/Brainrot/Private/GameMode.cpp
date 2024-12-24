@@ -45,7 +45,6 @@ bool GameMode::ReadyToStartMatch(AFortGameModeAthena* GameMode) {
         GameState->AirCraftBehavior = Playlist->AirCraftBehavior;
 
         GameMode->CurrentPlaylistId = Playlist->PlaylistId;
-        GameMode->CurrentPlaylistId = Playlist->PlaylistId;
         GameMode->CurrentPlaylistName = Playlist->PlaylistName;
         GameMode->WarmupRequiredPlayerCount = 1;
 

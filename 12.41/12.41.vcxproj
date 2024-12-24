@@ -148,6 +148,7 @@
     <ClInclude Include="Brainrot\Public\NetDriver.h" />
     <ClInclude Include="Brainrot\Public\Pawn.h" />
     <ClInclude Include="Brainrot\Public\PlayerController.h" />
+    <ClInclude Include="Brainrot\Public\PlayerState.h" />
     <ClInclude Include="Brainrot\Public\Utilities.h" />
     <ClInclude Include="Brainrot\SDK\PropertyFixup.hpp" />
     <ClInclude Include="Brainrot\SDK\SDK.hpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="Brainrot\Private\NetDriver.cpp" />
     <ClCompile Include="Brainrot\Private\Pawn.cpp" />
     <ClCompile Include="Brainrot\Private\PlayerController.cpp" />
+    <ClCompile Include="Brainrot\Private\PlayerState.cpp" />
     <ClCompile Include="Brainrot\SDK\SDK\AIModule_functions.cpp" />
     <ClCompile Include="Brainrot\SDK\SDK\Basic.cpp" />
     <ClCompile Include="Brainrot\SDK\SDK\CoreUObject_functions.cpp" />

@@ -25,7 +25,7 @@ void InitPlayer(AFortPlayerControllerAthena* PlayerController) {
 	for (auto& ItemEntry : PlayerController->WorldInventory->Inventory.ReplicatedEntries) {
 		if (ItemEntry.ItemDefinition->IsA(UFortWeaponMeleeItemDefinition::StaticClass())) {
 			bHasStarterItems = true;
-			std::cout << std::format("Player: {} already has starter items", PlayerState->GetPlayerName().ToString()) << std::endl;
+			std::cout << std::format("{} already has starter items", PlayerState->GetPlayerName().ToString()) << std::endl;
 			break;
 		}
 	}
@@ -137,13 +137,10 @@ void InitPlayer(AFortPlayerControllerAthena* PlayerController) {
     PlayerController->DiscoverabilityComponent->DiscoverAllLandmarks();
 }
 
-void PlayerController::ServerAcknowledgePossession(APlayerController* PlayerController, APawn* P) {
+void PlayerController::ServerAcknowledgePossession(AFortPlayerControllerAthena* PlayerController, APawn* P) {
 	PlayerController->AcknowledgedPawn = P;
 
-	if (P) {
-		AFortPlayerControllerAthena* PC = Cast<AFortPlayerControllerAthena>(PlayerController);
-		InitPlayer(PC);
-	}
+	InitPlayer(PlayerController);
 }
 
 void PlayerController::ServerAttemptAircraftJump(UFortControllerComponent_Aircraft* ControllerComponent, FRotator& ClientRotation)
@@ -225,7 +222,7 @@ void PlayerController::ServerCreateBuildingActor(AFortPlayerControllerAthena* Pl
 
     TArray<ABuildingSMActor*> ExistingBuildings;
     char BuildRestrictionFlag;
-    if (CantBuild(GetWorld(), BuildingClass, CreateBuildingData.BuildLoc, CreateBuildingData.BuildRot, CreateBuildingData.bMirrored, &ExistingBuildings, &BuildRestrictionFlag)) { std::cout << "CantBuild" << std::endl; return; }
+    if (CantBuild(GetWorld(), BuildingClass, CreateBuildingData.BuildLoc, CreateBuildingData.BuildRot, CreateBuildingData.bMirrored, &ExistingBuildings, &BuildRestrictionFlag)) { return; }
 
     auto NewBuilding = SpawnActor<ABuildingSMActor>(CreateBuildingData.BuildLoc, CreateBuildingData.BuildRot, BuildingClass);
     if (!NewBuilding) { std::cout << "Failed to spawn NewBuilding" << std::endl; return; }
@@ -243,7 +240,7 @@ void PlayerController::ServerCreateBuildingActor(AFortPlayerControllerAthena* Pl
     ExistingBuildings.Free();
 
     auto ItemDefinition = UFortKismetLibrary::K2_GetResourceItemDefinition(NewBuilding->ResourceType);
-    FortInventory::RemoveItem(PlayerController, ItemDefinition, 10);
+    FortInventory::RemoveItem(PlayerController, FortInventory::FindItemEntry(PlayerController, ItemDefinition)->ItemGuid, 10);
 }
 
 void PlayerController::ServerBeginEditingBuildingActor(AFortPlayerControllerAthena* PlayerController, ABuildingSMActor* BuildingActorToEdit) {
@@ -381,4 +378,42 @@ void PlayerController::GetPlayerViewPoint(AFortPlayerControllerAthena* PlayerCon
         Location = PlayerController->GetViewTarget()->K2_GetActorLocation();
         Rotation = PlayerController->GetControlRotation();
     }
+}
+
+void PlayerController::ServerPlayEmoteItem(AFortPlayerControllerAthena* PlayerController, UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber) {
+    if (!PlayerController || !EmoteAsset)
+        return;
+
+    UClass* DanceAbility = StaticLoadObject<UClass>("/Game/Abilities/Emotes/GAB_Emote_Generic.GAB_Emote_Generic_C");
+    UClass* SprayAbility = StaticLoadObject<UClass>("/Game/Abilities/Sprays/GAB_Spray_Generic.GAB_Spray_Generic_C");
+
+    if (!DanceAbility || !SprayAbility)
+        return;
+
+    auto EmoteDef = (UAthenaDanceItemDefinition*)EmoteAsset;
+    if (!EmoteDef)
+        return;
+
+    PlayerController->MyFortPawn->bMovingEmote = EmoteDef->bMovingEmote;
+    PlayerController->MyFortPawn->EmoteWalkSpeed = EmoteDef->WalkForwardSpeed;
+    PlayerController->MyFortPawn->bMovingEmoteForwardOnly = EmoteDef->bMoveForwardOnly;
+    PlayerController->MyFortPawn->EmoteWalkSpeed = EmoteDef->WalkForwardSpeed;
+
+    FGameplayAbilitySpec Spec{};
+    UGameplayAbility* Ability = nullptr;
+
+    if (EmoteAsset->IsA(UAthenaSprayItemDefinition::StaticClass()))
+    {
+        Ability = (UGameplayAbility*)SprayAbility->DefaultObject;
+    }
+    else if (EmoteAsset->IsA(UAthenaToyItemDefinition::StaticClass())) {
+        std::cout << "Ill add later" << std::endl;
+    }
+    else
+    {
+        Ability = (UGameplayAbility*)DanceAbility->DefaultObject;
+    }
+
+    Abilities::SpecConstructor(&Spec, Ability, 1, -1, EmoteDef);
+    Abilities::GiveAbilityAndActivateOnce(((AFortPlayerStateAthena*)PlayerController->PlayerState)->AbilitySystemComponent, &Spec.Handle, Spec);
 }

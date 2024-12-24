@@ -11,11 +11,10 @@ If you use this project in your work, please give proper credit by including a l
 - Editing
 - Abilities
 - Event (Travis)
-- Foundations
 - MCP
+- Emoting
 
 ## TO-DO
-- Emoting
 - Bosses
 - Eliminations
 - Arena

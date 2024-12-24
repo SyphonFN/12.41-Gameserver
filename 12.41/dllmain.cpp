@@ -4,6 +4,8 @@
 #include "Brainrot/Public/GameplayAbilities.h"
 #include "Brainrot/Public/FortInventory.h"
 #include "Brainrot/Public/BuildingContainer.h"
+#include "Brainrot/Public/Pawn.h" 
+#include "Brainrot/Public/PlayerState.h" 
 #include "Brainrot/Public/GameMode.h" 
 
 __int64 (*DispatchrequestOG)(__int64 a1, __int64* a2, int a3);
@@ -31,7 +33,6 @@ void ProcessEvent(UObject* Object, UFunction* Function, void** Params) {
 
 	//if (FunctionName.contains("")) {
 	//	std::cout << std::format("ProcessEvent: {}", FunctionName) << std::endl;
-	// 
 	//}
 
 	return ProcessEventOG(Object, Function, Params);
@@ -42,6 +43,8 @@ void Main() {
 	AllocConsole();
 	FILE* f;
 	freopen_s(&f, "CONOUT$", "w", stdout);
+
+	Sleep(5000);
 
 	MH_Initialize();
 
@@ -66,27 +69,34 @@ void Main() {
 	DisableFunction(InSDKUtils::GetImageBase() + 0x1E23840);
 	DisableFunction(InSDKUtils::GetImageBase() + 0x2D95DC0);
 
-	DisableFunction(InSDKUtils::GetImageBase() + 0x1A4153F);
-
 #pragma region GameMode
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x18EBDA0), GameMode::ReadyToStartMatch, (LPVOID*)&GameMode::ReadyToStartMatchOG);
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x18F6250), GameMode::SpawnDefaultPawnFor, nullptr);
 #pragma endregion
 
 #pragma region PlayerController
-	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x10D, PlayerController::ServerAcknowledgePossession);
-	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x20D, PlayerController::ServerExecuteInventoryItem);
 	HookVTable(UFortControllerComponent_Aircraft::GetDefaultObj(), 0x89, PlayerController::ServerAttemptAircraftJump);
 
+	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x10D, PlayerController::ServerAcknowledgePossession);
+	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x20D, PlayerController::ServerExecuteInventoryItem);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x230, PlayerController::ServerCreateBuildingActor);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x237, PlayerController::ServerBeginEditingBuildingActor);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x232, PlayerController::ServerEditBuildingActor);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x235, PlayerController::ServerEndEditingBuildingActor);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x1C5, PlayerController::ServerCheat);
+	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x1C7, PlayerController::ServerPlayEmoteItem);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x269, PlayerController::ServerReadyToStartMatch, (PVOID*)&PlayerController::ServerReadyToStartMatchOG);
 
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x2683F80), PlayerController::OnDamageServer, (LPVOID*)&PlayerController::OnDamageServerOG);
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x22E0D50), PlayerController::GetPlayerViewPoint, nullptr);
+#pragma endregion
+
+#pragma region Pawn
+	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x6853B0), Pawn::MovingEmoteStopped, (LPVOID*)&Pawn::MovingEmoteStoppedOG);
+#pragma endregion
+
+#pragma region PlayerState
+	HookVTable(AFortPlayerStateAthena::GetDefaultObj(), 0xFF, PlayerState::ServerSetInAircraft, (PVOID*)&PlayerState::ServerSetInAircraftOG);
 #pragma endregion
 
 #pragma region Abilities
