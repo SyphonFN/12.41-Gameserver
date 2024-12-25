@@ -1,6 +1,7 @@
 #include "../Public/GameMode.h"
 #include "../Public/Utilities.h"
 #include "../Public/NetDriver.h"
+#include "../Public/Vehicles.h"
 
 bool GameMode::ReadyToStartMatch(AFortGameModeAthena* GameMode) {
 
@@ -37,12 +38,13 @@ bool GameMode::ReadyToStartMatch(AFortGameModeAthena* GameMode) {
         PlaylistPropertyArray.PlaylistReplicationKey++;
         PlaylistPropertyArray.BasePlaylist->AISettings = Playlist->AISettings;
         PlaylistPropertyArray.MarkArrayDirty();
+
         GameState->CurrentPlaylistInfo = PlaylistPropertyArray;
         GameState->CurrentPlaylistId = Playlist->PlaylistId;
+        GameState->AirCraftBehavior = Playlist->AirCraftBehavior;
+
         GameState->OnRep_CurrentPlaylistInfo();
         GameState->OnRep_CurrentPlaylistId();
-
-        GameState->AirCraftBehavior = Playlist->AirCraftBehavior;
 
         GameMode->CurrentPlaylistId = Playlist->PlaylistId;
         GameMode->CurrentPlaylistName = Playlist->PlaylistName;
@@ -97,6 +99,9 @@ bool GameMode::ReadyToStartMatch(AFortGameModeAthena* GameMode) {
         }
 
         GameMode->bWorldIsReady = true;
+
+		Vehicles::SpawnVehicles();
+
         std::cout << "Listening!" << std::endl;
     }
 

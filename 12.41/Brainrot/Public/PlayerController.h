@@ -24,4 +24,5 @@ public:
 	static void OnDamageServer(ABuildingSMActor* ABuildingActor, float Damage, FGameplayTagContainer& DamageTags, FVector& Momentum, FHitResult& HitInfo, AFortPlayerControllerAthena* InstigatedBy, AActor* DamageCauser, FGameplayEffectContextHandle& EffectContext);
 	static void GetPlayerViewPoint(AFortPlayerControllerAthena* PlayerController, FVector& Location, FRotator& Rotation);
 	static void ServerPlayEmoteItem(AFortPlayerControllerAthena* PlayerController, UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber);
+	static void GiveModifiers(AFortPlayerControllerAthena* PlayerController, UFortPlaylistAthena* Playlist);
 };

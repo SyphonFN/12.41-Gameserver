@@ -7,6 +7,7 @@
 #include "Brainrot/Public/Pawn.h" 
 #include "Brainrot/Public/PlayerState.h" 
 #include "Brainrot/Public/GameMode.h" 
+#include "Brainrot/Public/Vehicles.h" 
 
 __int64 (*DispatchrequestOG)(__int64 a1, __int64* a2, int a3);
 __int64 __fastcall Dispatchrequest(__int64 a1, __int64* a2, int a3) {
@@ -22,7 +23,7 @@ __int64 sub_2B98BE0(__int64 a1, unsigned int a2, __int64 a3, unsigned __int8 a4,
 	return -1; 
 }
 
-static float GetMaxTickRate() {
+float GetMaxTickRate() {
 	return 30.f;
 }
 
@@ -58,10 +59,10 @@ void Main() {
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x4155600), Return1, nullptr); 
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x2DBCBA0), Return1, nullptr);
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x2B98BE0), sub_2B98BE0, nullptr);
-	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x42C3ED0), NetDriver::TickFlush, (PVOID*)&NetDriver::TickFlushOG);
-	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x108D740), Dispatchrequest, (PVOID*)&DispatchrequestOG);
-	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + Offsets::ProcessEvent), ProcessEvent, (PVOID*)&ProcessEventOG);
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x4576310), GetMaxTickRate, nullptr);
+	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x42C3ED0), NetDriver::TickFlush, (PVOID*)&NetDriver::TickFlushOG);
+	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + Offsets::ProcessEvent), ProcessEvent, (PVOID*)&ProcessEventOG);
+	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x108D740), Dispatchrequest, (PVOID*)&DispatchrequestOG);
 
 	DisableFunction(InSDKUtils::GetImageBase() + 0x3CA10C0);
 	DisableFunction(InSDKUtils::GetImageBase() + 0x2D95E00);
@@ -86,6 +87,8 @@ void Main() {
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x1C5, PlayerController::ServerCheat);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x1C7, PlayerController::ServerPlayEmoteItem);
 	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x269, PlayerController::ServerReadyToStartMatch, (PVOID*)&PlayerController::ServerReadyToStartMatchOG);
+	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x41E, Vehicles::ServerAttemptExitVehicle, (PVOID*)&Vehicles::ServerAttemptExitVehicleOG);
+	HookVTable(AFortPlayerControllerAthena::GetDefaultObj(), 0x40B, Vehicles::ServerRequestSeatChange, (PVOID*)&Vehicles::ServerRequestSeatChangeOG);
 
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x2683F80), PlayerController::OnDamageServer, (LPVOID*)&PlayerController::OnDamageServerOG);
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x22E0D50), PlayerController::GetPlayerViewPoint, nullptr);
@@ -93,6 +96,16 @@ void Main() {
 
 #pragma region Pawn
 	MH_CreateHook((LPVOID)(InSDKUtils::GetImageBase() + 0x6853B0), Pawn::MovingEmoteStopped, (LPVOID*)&Pawn::MovingEmoteStoppedOG);
+
+	for (size_t i = 0; i < UObject::GObjects->Num(); i++) {
+		auto Object = UObject::GObjects->GetByIndex(i);
+		if (!Object)
+			continue;
+
+		if (Object->IsA(AFortPhysicsPawn::StaticClass())) {
+			HookVTable(Object->Class->DefaultObject, 0xEE, Vehicles::ServerMove);
+		}
+	}
 #pragma endregion
 
 #pragma region PlayerState
@@ -110,16 +123,6 @@ void Main() {
 #pragma endregion
 
 	MH_EnableHook(MH_ALL_HOOKS);
-
-	//std::ofstream DumpFile("12.41ObjDump.txt");
-	//for (intptr_t i = 0; i < UObject::GObjects->Num(); i++)
-	//{
-	//	auto Object = UObject::GObjects->GetByIndex(i);
-	//	if (!Object)
-	//		continue;
-	//	DumpFile << Object->GetFullName().c_str() << std::endl;
-	//}
-	//DumpFile.close();
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,

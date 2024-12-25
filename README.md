@@ -13,6 +13,7 @@ If you use this project in your work, please give proper credit by including a l
 - Event (Travis)
 - MCP
 - Emoting
+- Vehicles
 
 ## TO-DO
 - Bosses
@@ -20,9 +21,11 @@ If you use this project in your work, please give proper credit by including a l
 - Arena
 - GUI
 - Quests & Accolades
-- Vehicles
 - Looting
 - Teams
+- Toys
+- Lategame
 
 ## Contributing
 Contributions are welcome!
+Please inform me about any crashes, issues, or bugs.

@@ -104,6 +104,12 @@
     <ClCompile Include="Brainrot\Private\PlayerState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Brainrot\Private\Vehicles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Brainrot\Public\Vehicles.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="MinHook\minhook.x64.lib" />

@@ -3,6 +3,7 @@
 #include "../Public/GameplayAbilities.h"
 #include "../Public/FortInventory.h"
 #include "../Public/GameMode.h"
+#include "../Public/Vehicles.h"
 
 void InitPlayer(AFortPlayerControllerAthena* PlayerController) {
 	AFortPlayerStateAthena* PlayerState = Cast<AFortPlayerStateAthena>(PlayerController->PlayerState);
@@ -46,91 +47,11 @@ void InitPlayer(AFortPlayerControllerAthena* PlayerController) {
 		Abilities::GiveAbility((AFortPlayerPawnAthena*)PlayerController->MyFortPawn, (UGameplayAbility*)Ability.Get()->DefaultObject);
 	}
 
-	if (!AbilitySystemComponent) { std::cout << "AbilitySystemComponent is null" << std::endl; return; }
-
 	for (auto& GrantedGameplayEffect : AbilitySet->GrantedGameplayEffects) {
-		std::cout << std::format("Giving effect: {}", GrantedGameplayEffect.GameplayEffect.Get()->GetName()) << std::endl;
 		AbilitySystemComponent->BP_ApplyGameplayEffectToSelf(GrantedGameplayEffect.GameplayEffect.Get(), GrantedGameplayEffect.Level, FGameplayEffectContextHandle());
 	}
 
-    for (auto& Modifier : Playlist->ModifierList) {
-        std::cout << "Modifier: " << Modifier->GetName() << std::endl;
-
-        for (auto& PersistentAbilitySet : Modifier->PersistentAbilitySets) {
-
-            if (Modifier->PersistentAbilitySets.Num() == 0) { std::cout << "No PersistentAbilitySets in Modifier" << std::endl; continue; }
-
-            if (PersistentAbilitySet.DeliveryRequirements.bApplyToPlayerPawns) {
-                for (auto& AbilitySet : PersistentAbilitySet.AbilitySets) {
-
-                    if (AbilitySet.ObjectID.AssetPathName.GetRawString() == "None") continue;
-
-                    std::cout << "Starting to give ability set: " << AbilitySet.ObjectID.AssetPathName.GetRawString() << " to player pawns" << std::endl;
-
-                    UFortAbilitySet* AbilitySetClass = StaticLoadObject<UFortAbilitySet>(AbilitySet.ObjectID.AssetPathName.GetRawString());
-                    if (!AbilitySetClass) { std::cout << "Failed to load AbilitySetClass" << std::endl; continue; }
-
-                    for (auto& Ability : AbilitySetClass->GameplayAbilities) {
-
-                        if (!Ability.Get()) { std::cout << "GameplayAbility is null, skipping" << std::endl; continue; }
-
-                        auto DefaultAbility = Ability.Get()->DefaultObject;
-                        if (!DefaultAbility) { std::cout << "DefaultObject for Ability is null" << std::endl; continue; }
-
-                        std::cout << "Giving ability: " << DefaultAbility->GetName() << std::endl;
-                        Abilities::GiveAbility((AFortPlayerPawnAthena*)PlayerController->MyFortPawn, (UGameplayAbility*)DefaultAbility);
-                    }
-
-                    for (auto& GrantedGameplayEffect : AbilitySetClass->GrantedGameplayEffects) {
-                        if (!GrantedGameplayEffect.GameplayEffect.Get()) { std::cout << "GrantedGameplayEffect is null" << std::endl; continue; }
-
-                        std::cout << "Giving effect: " << GrantedGameplayEffect.GameplayEffect.Get()->GetName() << std::endl;
-
-                        auto AbilitySystemComponent = PlayerController->MyFortPawn->AbilitySystemComponent;
-                        if (!AbilitySystemComponent) { std::cout << "AbilitySystemComponent is null" << std::endl; continue;  }
-
-                        AbilitySystemComponent->BP_ApplyGameplayEffectToSelf(GrantedGameplayEffect.GameplayEffect.Get(), GrantedGameplayEffect.Level, FGameplayEffectContextHandle());
-                    }
-                }
-            }
-
-            if (PersistentAbilitySet.DeliveryRequirements.bApplyToBuildingActors)  {
-                for (auto& AbilitySet : PersistentAbilitySet.AbilitySets) {
-                    std::cout << "Processing delivery to building actors" << std::endl;
-                    break;
-                }
-            }
-        }
-
-        for (auto& PersistentGameplayEffect : Modifier->PersistentGameplayEffects)  {
-            if (Modifier->PersistentGameplayEffects.Num() == 0) {
-                std::cout << "No PersistentGameplayEffects in Modifier" << std::endl;
-                continue;
-            }
-
-            if (PersistentGameplayEffect.DeliveryRequirements.bApplyToPlayerPawns)  {
-                for (auto& GameplayEffect : PersistentGameplayEffect.GameplayEffects)  {
-                    if (GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString() == "None") continue;
-
-                    std::cout << "Giving effect: " << GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString() << std::endl;
-
-                    UClass* GameplayEffectClass = StaticLoadObject<UClass>(GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString());
-                    if (!GameplayEffectClass) { std::cout << "Failed to load GameplayEffectClass" << std::endl; continue; }
-
-                    auto AbilitySystemComponent = PlayerController->MyFortPawn->AbilitySystemComponent;
-                    if (!AbilitySystemComponent) { std::cout << "AbilitySystemComponent is null" << std::endl; continue; }
-
-                    AbilitySystemComponent->BP_ApplyGameplayEffectToSelf(GameplayEffectClass, GameplayEffect.Level, FGameplayEffectContextHandle());
-                }
-            }
-
-            if (PersistentGameplayEffect.DeliveryRequirements.bApplyToBuildingActors) {
-				for (auto& GameplayEffect : PersistentGameplayEffect.GameplayEffects) {
-					std::cout << std::format("Building actor GameplayEffect: {}", GameplayEffect.GameplayEffect.Get()->GetName()) << std::endl;
-				}
-			}
-        }
-    }
+    PlayerController::GiveModifiers(PlayerController, Playlist);
 
     PlayerController->DiscoverabilityComponent->DiscoverAllPois();
     PlayerController->DiscoverabilityComponent->DiscoverAllAreas();
@@ -301,19 +222,17 @@ void PlayerController::ServerEndEditingBuildingActor(AFortPlayerControllerAthena
 void PlayerController::ServerCheat(AFortPlayerControllerAthena* PlayerController, FString& Msg) {
 	std::string Command = Msg.ToString();
 
-	if (Command == "eventstart") {
+	if (Command == "startevent") {
         auto BP_Jerky_Loader_C = StaticFindObject<UClass>("/CycloneJerky/Gameplay/BP_Jerky_Loader.BP_Jerky_Loader_C");
 
         TArray<AActor*> BP_Jerky_Loader_Cs;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), BP_Jerky_Loader_C, &BP_Jerky_Loader_Cs);
 
-        std::cout << std::format("Found {} Jerky mfs", BP_Jerky_Loader_Cs.Num());
-
-        auto Jerky_Loader = BP_Jerky_Loader_Cs[0];
-
-		UFunction* Func = UObject::FindObject<UObject>("BP_Jerky_Loader_C JerkyLoaderLevel.JerkyLoaderLevel.PersistentLevel.BP_Jerky_Loader_2")->Class->GetFunction("BP_Jerky_Loader_C", "startevent");
-		float Params = 0.f;
-        Jerky_Loader->ProcessEvent(Func, &Params);
+        for (auto Jerky_Loader : BP_Jerky_Loader_Cs) {
+            UFunction* Func = UObject::FindObject<UObject>("BP_Jerky_Loader_C JerkyLoaderLevel.JerkyLoaderLevel.PersistentLevel.BP_Jerky_Loader_2")->Class->GetFunction("BP_Jerky_Loader_C", "startevent");
+            float Params = 0.f;
+            Jerky_Loader->ProcessEvent(Func, &Params);
+        }
 	}
 }
 
@@ -409,11 +328,87 @@ void PlayerController::ServerPlayEmoteItem(AFortPlayerControllerAthena* PlayerCo
     else if (EmoteAsset->IsA(UAthenaToyItemDefinition::StaticClass())) {
         std::cout << "Ill add later" << std::endl;
     }
-    else
-    {
-        Ability = (UGameplayAbility*)DanceAbility->DefaultObject;
+
+    if (Ability == nullptr) {
+		Ability = (UGameplayAbility*)DanceAbility->DefaultObject;
     }
 
     Abilities::SpecConstructor(&Spec, Ability, 1, -1, EmoteDef);
     Abilities::GiveAbilityAndActivateOnce(((AFortPlayerStateAthena*)PlayerController->PlayerState)->AbilitySystemComponent, &Spec.Handle, Spec);
+}
+
+void PlayerController::GiveModifiers(AFortPlayerControllerAthena* PlayerController, UFortPlaylistAthena* Playlist) {
+    for (auto& Modifier : Playlist->ModifierList) {
+
+        for (auto& PersistentAbilitySet : Modifier->PersistentAbilitySets) {
+
+            if (Modifier->PersistentAbilitySets.Num() == 0) { std::cout << "No PersistentAbilitySets in Modifier" << std::endl; continue; }
+
+            if (PersistentAbilitySet.DeliveryRequirements.bApplyToPlayerPawns) {
+                for (auto& AbilitySet : PersistentAbilitySet.AbilitySets) {
+
+                    if (AbilitySet.ObjectID.AssetPathName.GetRawString() == "None") continue;
+
+                    UFortAbilitySet* AbilitySetClass = StaticLoadObject<UFortAbilitySet>(AbilitySet.ObjectID.AssetPathName.GetRawString());
+                    if (!AbilitySetClass) { std::cout << "Failed to load AbilitySetClass" << std::endl; continue; }
+
+                    for (auto& Ability : AbilitySetClass->GameplayAbilities) {
+
+                        if (!Ability.Get()) { std::cout << "GameplayAbility is null, skipping" << std::endl; continue; }
+
+                        auto DefaultAbility = Ability.Get()->DefaultObject;
+                        if (!DefaultAbility) { std::cout << "DefaultObject for Ability is null" << std::endl; continue; }
+
+                        std::cout << "Giving ability: " << DefaultAbility->GetName() << std::endl;
+                        Abilities::GiveAbility((AFortPlayerPawnAthena*)PlayerController->MyFortPawn, (UGameplayAbility*)DefaultAbility);
+                    }
+
+                    for (auto& GrantedGameplayEffect : AbilitySetClass->GrantedGameplayEffects) {
+                        if (!GrantedGameplayEffect.GameplayEffect.Get()) { std::cout << "GrantedGameplayEffect is null" << std::endl; continue; }
+
+                        std::cout << "Giving effect: " << GrantedGameplayEffect.GameplayEffect.Get()->GetName() << std::endl;
+
+                        auto AbilitySystemComponent = PlayerController->MyFortPawn->AbilitySystemComponent;
+                        if (!AbilitySystemComponent) { std::cout << "AbilitySystemComponent is null" << std::endl; continue; }
+
+                        AbilitySystemComponent->BP_ApplyGameplayEffectToSelf(GrantedGameplayEffect.GameplayEffect.Get(), GrantedGameplayEffect.Level, FGameplayEffectContextHandle());
+                    }
+                }
+            }
+
+            if (PersistentAbilitySet.DeliveryRequirements.bApplyToBuildingActors) {
+                for (auto& AbilitySet : PersistentAbilitySet.AbilitySets) {
+                    break;
+                }
+            }
+        }
+
+        for (auto& PersistentGameplayEffect : Modifier->PersistentGameplayEffects) {
+            if (Modifier->PersistentGameplayEffects.Num() == 0) {
+                continue;
+            }
+
+            if (PersistentGameplayEffect.DeliveryRequirements.bApplyToPlayerPawns) {
+                for (auto& GameplayEffect : PersistentGameplayEffect.GameplayEffects) {
+                    if (GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString() == "None") continue;
+
+                    std::cout << "Giving effect: " << GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString() << std::endl;
+
+                    UClass* GameplayEffectClass = StaticLoadObject<UClass>(GameplayEffect.GameplayEffect.ObjectID.AssetPathName.GetRawString());
+                    if (!GameplayEffectClass) { std::cout << "Failed to load GameplayEffectClass" << std::endl; continue; }
+
+                    auto AbilitySystemComponent = PlayerController->MyFortPawn->AbilitySystemComponent;
+                    if (!AbilitySystemComponent) { std::cout << "AbilitySystemComponent is null" << std::endl; continue; }
+
+                    AbilitySystemComponent->BP_ApplyGameplayEffectToSelf(GameplayEffectClass, GameplayEffect.Level, FGameplayEffectContextHandle());
+                }
+            }
+
+            if (PersistentGameplayEffect.DeliveryRequirements.bApplyToBuildingActors) {
+                for (auto& GameplayEffect : PersistentGameplayEffect.GameplayEffects) {
+                    std::cout << std::format("Building actor GameplayEffect: {}", GameplayEffect.GameplayEffect.Get()->GetName()) << std::endl;
+                }
+            }
+        }
+    }
 }
